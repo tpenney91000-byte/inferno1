@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Product Status - Inferno</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0000;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(180, 0, 0, 0.15) 0%, transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 0, 0.1) 0%, transparent 35%),
+                linear-gradient(145deg, #0f0000 0%, #1a0101 100%);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated glow orbs */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 0, 0, 0.1) 0%, transparent 50%);
+            animation: pulseGlow 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Main container */
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: rgba(20, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 40, 40, 0.25);
+            border-radius: 100px;
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px -10px rgba(255, 0, 0, 0.3);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(145deg, #ff3a3a, #990000);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 0 20px #ff0000;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff6b6b, #ff1a1a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #f0f0f0;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.2s;
+            font-size: 15px;
+        }
+
+        .nav-links a:hover {
+            color: #ff4d4d;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
+        .status-badge {
+            background: rgba(180, 0, 0, 0.3);
+            border: 1px solid #ff3d3d;
+            border-radius: 30px;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ffb8b8;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #ff3333;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #ff0000;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Header Section */
+        .header-section {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .page-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+        }
+
+        .page-subtitle {
+            color: #b3b3b3;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        /* Status Controls */
+        .status-controls {
+            background: rgba(20, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 40, 40, 0.25);
+            border-radius: 20px;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 60, 60, 0.3);
+            color: #f0f0f0;
+            padding: 8px 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: #ff4d4d;
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(145deg, #ff4d4d, #990000);
+            border-color: #ff4d4d;
+            color: white;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 60, 60, 0.3);
+            border-radius: 25px;
+            padding: 8px 20px;
+            min-width: 300px;
+        }
+
+        .search-bar input {
+            background: none;
+            border: none;
+            color: white;
+            outline: none;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .search-bar input::placeholder {
+            color: #888;
+        }
+
+        .search-bar i {
+            color: #ff4d4d;
+            margin-right: 10px;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(145deg, #ff4d4d, #990000);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px #ff0000;
+        }
+
+        /* Status Cards */
+        .status-container {
+            background: rgba(20, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 40, 40, 0.25);
+            border-radius: 20px;
+            padding: 30px;
+        }
+
+        .category-section {
+            margin-bottom: 40px;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 60, 60, 0.3);
+        }
+
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(145deg, #660000, #330000);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ff4d4d;
+            font-size: 18px;
+        }
+
+        .category-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .product-item {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 60, 60, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .product-item:hover {
+            background: rgba(50, 0, 0, 0.8);
+            border-color: #ff4d4d;
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px -5px #ff0000;
+        }
+
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .product-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(145deg, #660000, #330000);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ff6b6b;
+            font-size: 20px;
+            border: 1px solid #b30000;
+        }
+
+        .product-details h3 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .product-details p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .product-status {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .status-indicator.undetected {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+        }
+
+        .status-indicator.undetected .status-dot {
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        .status-indicator.maintenance {
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid #ffa500;
+            color: #ffa500;
+        }
+
+        .status-indicator.maintenance .status-dot {
+            background: #ffa500;
+            box-shadow: 0 0 10px #ffa500;
+        }
+
+        .buy-btn {
+            background: linear-gradient(145deg, #ff4d4d, #990000);
+            border: none;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .buy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px #ff0000;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .status-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-buttons {
+                justify-content: center;
+            }
+
+            .search-bar {
+                min-width: 100%;
+            }
+
+            .product-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .product-status {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- NAVBAR -->
+        <nav class="navbar">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <span class="logo-text">INFERNO</span>
+            </div>
+            <div class="nav-links">
+                <a href="main.html">Home</a>
+                <a href="#" style="color: #ff4d4d;">Status</a>
+                <a href="support.html">Support</a>
+                <a href="discord.html">Discord</a>
+                <a href="login.html">Reseller</a>
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    <span>17 ONLINE</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1 class="page-title">Live Product Status</h1>
+            <p class="page-subtitle">Real-time status monitoring for all Inferno products</p>
+        </div>
+
+        <!-- Status Controls -->
+        <div class="status-controls">
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterProducts('all')">
+                    <i class="fas fa-circle"></i> All
+                </button>
+                <button class="filter-btn" onclick="filterProducts('operational')">
+                    <i class="fas fa-check-circle"></i> Operational
+                </button>
+                <button class="filter-btn" onclick="filterProducts('maintenance')">
+                    <i class="fas fa-tools"></i> Maintenance
+                </button>
+                <button class="filter-btn" onclick="filterProducts('detected')">
+                    <i class="fas fa-exclamation-triangle"></i> Detected
+                </button>
+                <button class="filter-btn" onclick="filterProducts('discontinued')">
+                    <i class="fas fa-times-circle"></i> Discontinued
+                </button>
+                <button class="filter-btn" onclick="filterProducts('unknown')">
+                    <i class="fas fa-question-circle"></i> Unknown
+                </button>
+            </div>
+            
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search products..." id="searchInput" onkeyup="searchProducts()">
+            </div>
+            
+            <button class="refresh-btn" onclick="refreshStatus()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+
+        <!-- Status Container -->
+        <div class="status-container">
+            <!-- Fortnite Products Section -->
+            <div class="category-section">
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <h2 class="category-title">FORTNITE PRODUCTS</h2>
+                </div>
+                
+                <div class="product-list">
+                    <div class="product-item" data-status="undetected" data-name="Fortnite Private">
+                        <div class="product-info">
+                            <div class="product-icon">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                            <div class="product-details">
+                                <h3>Fortnite Private</h3>
+                                <p>Advanced driver system • Rage features</p>
+                            </div>
+                        </div>
+                        <div class="product-status">
+                            <div class="status-indicator undetected">
+                                <span class="status-dot"></span>
+                                Undetected
+                            </div>
+                            <button class="buy-btn" onclick="window.location.href='main.html'">Buy Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spoofer Products Section -->
+            <div class="category-section">
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <h2 class="category-title">SPOOFER PRODUCTS</h2>
+                </div>
+                
+                <div class="product-list">
+                    <div class="product-item" data-status="undetected" data-name="Temp Spoofer">
+                        <div class="product-info">
+                            <div class="product-icon">
+                                <i class="fas fa-timer"></i>
+                            </div>
+                            <div class="product-details">
+                                <h3>Temp Spoofer</h3>
+                                <p>Kernel driver • Built-in cleaner</p>
+                            </div>
+                        </div>
+                        <div class="product-status">
+                            <div class="status-indicator undetected">
+                                <span class="status-dot"></span>
+                                Undetected
+                            </div>
+                            <button class="buy-btn" onclick="window.location.href='main.html'">Buy Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Last updated: <span id="lastUpdated"></span> • Status updates every 5 minutes</p>
+        </div>
+    </div>
+
+    <script>
+        // Update last updated time
+        function updateLastUpdated() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+            document.getElementById('lastUpdated').textContent = timeString;
+        }
+
+        // Filter products
+        function filterProducts(status) {
+            const products = document.querySelectorAll('.product-item');
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            // Update active button
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.filter-btn').classList.add('active');
+            
+            // Filter products
+            products.forEach(product => {
+                if (status === 'all') {
+                    product.style.display = 'flex';
+                } else {
+                    const productStatus = product.getAttribute('data-status');
+                    product.style.display = productStatus === status ? 'flex' : 'none';
+                }
+            });
+        }
+
+        // Search products
+        function searchProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const products = document.querySelectorAll('.product-item');
+            
+            products.forEach(product => {
+                const productName = product.getAttribute('data-name').toLowerCase();
+                const productDetails = product.querySelector('.product-details p').textContent.toLowerCase();
+                
+                if (productName.includes(searchTerm) || productDetails.includes(searchTerm)) {
+                    product.style.display = 'flex';
+                } else {
+                    product.style.display = 'none';
+                }
+            });
+        }
+
+        // Refresh status
+        function refreshStatus() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            const icon = refreshBtn.querySelector('i');
+            
+            // Add spinning animation
+            icon.style.animation = 'spin 1s linear';
+            
+            // Simulate refresh
+            setTimeout(() => {
+                icon.style.animation = '';
+                updateLastUpdated();
+                
+                // Show a subtle notification
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(145deg, #00ff00, #008800);
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 10px;
+                    font-weight: 600;
+                    z-index: 10000;
+                    animation: slideIn 0.3s ease;
+                `;
+                notification.textContent = 'Status updated successfully!';
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
+            }, 1000);
+        }
+
+        // Add spin animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize
+        updateLastUpdated();
+        
+        // Auto-refresh every 5 minutes
+        setInterval(updateLastUpdated, 300000);
+    </script>
+</body>
+</html>

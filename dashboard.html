@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inferno Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0000;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(180, 0, 0, 0.15) 0%, transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 0, 0.1) 0%, transparent 35%),
+                linear-gradient(145deg, #0f0000 0%, #1a0101 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 0, 0, 0.1) 0%, transparent 50%);
+            animation: pulseGlow 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Dashboard Layout */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(20, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-right: 1px solid rgba(255, 40, 40, 0.25);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 40, 40, 0.25);
+        }
+
+        .sidebar-logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(145deg, #ff3a3a, #990000);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 0 20px #ff0000;
+        }
+
+        .sidebar-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff6b6b, #ff1a1a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .nav-menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            color: #f0f0f0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 77, 77, 0.1);
+            color: #ff4d4d;
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(145deg, rgba(255, 77, 77, 0.2), rgba(153, 0, 0, 0.2));
+            border: 1px solid #ff4d4d;
+            color: #ff4d4d;
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .logout-btn {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: rgba(255, 51, 51, 0.2);
+            border: 1px solid #ff3333;
+            border-radius: 8px;
+            color: #ff9999;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 51, 51, 0.3);
+            border-color: #ff4d4d;
+            color: #ff4d4d;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .content-header {
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+        }
+
+        .page-subtitle {
+            color: #b3b3b3;
+            font-size: 1.1rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(20, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 40, 40, 0.25);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: #ff4d4d;
+            box-shadow: 0 20px 40px -15px rgba(255, 0, 0, 0.3);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #660000, #330000);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ff4d4d;
+            font-size: 24px;
+            margin: 0 auto 20px;
+            border: 1px solid #b30000;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        /* Key Generator Section */
+        .key-generator-section {
+            background: rgba(20, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 40, 40, 0.25);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .section-description {
+            color: #b3b3b3;
+            font-size: 1rem;
+        }
+
+        .generator-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            color: #f0f0f0;
+            margin-bottom: 10px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-input, .form-select {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 60, 60, 0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #ff4d4d;
+            box-shadow: 0 0 20px rgba(255, 77, 77, 0.3);
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .form-select {
+            cursor: pointer;
+        }
+
+        .form-select option {
+            background: #1a0000;
+            color: white;
+        }
+
+        .generate-btn {
+            grid-column: 1 / -1;
+            padding: 18px 40px;
+            background: linear-gradient(145deg, #ff4d4d, #990000);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 30px -10px rgba(255, 0, 0, 0.5);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px -10px rgba(255, 0, 0, 0.7);
+        }
+
+        /* Recent Keys Table */
+        .recent-keys-section {
+            background: rgba(20, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 40, 40, 0.25);
+            border-radius: 20px;
+            padding: 40px;
+        }
+
+        .keys-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .keys-table th {
+            background: rgba(255, 77, 77, 0.1);
+            color: #ff4d4d;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #ff4d4d;
+        }
+
+        .keys-table td {
+            padding: 15px;
+            color: #f0f0f0;
+            border-bottom: 1px solid rgba(255, 40, 40, 0.1);
+        }
+
+        .keys-table tr:hover {
+            background: rgba(255, 77, 77, 0.05);
+        }
+
+        .key-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid #00ff00;
+        }
+
+        .key-details {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .key-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid #00ff00;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .copy-btn {
+            padding: 8px 12px;
+            background: linear-gradient(145deg, #00ff00, #008800);
+            border: none;
+            border-radius: 6px;
+            color: black;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn.small {
+            padding: 5px 8px;
+            min-width: auto;
+        }
+        
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 255, 0, 0.2);
+        }
+
+        .copy-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+
+        .status-pending {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+            border: 1px solid #ffa500;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                padding: 20px;
+            }
+            
+            .nav-menu {
+                flex-direction: row;
+                overflow-x: auto;
+                gap: 5px;
+            }
+            
+            .nav-item {
+                white-space: nowrap;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <h2 class="sidebar-title">INFERNO</h2>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#generator" class="nav-item active" onclick="showSection('generator', this)">
+                    <i class="fas fa-key"></i>
+                    <span>Key Generator</span>
+                </a>
+                <a href="#hwid-reset" class="nav-item" onclick="showSection('hwid-reset', this)">
+                    <i class="fas fa-sync"></i>
+                    <span>HWID Reset</span>
+                </a>
+            </nav>
+
+            <a href="login.html" class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Key Generator Section (now the main section) -->
+            <section id="generator-section" class="content-section">
+                <div class="content-header">
+                    <h1 class="page-title">Key Generator</h1>
+                    <p class="page-subtitle">Generate secure keys for your products</p>
+                </div>
+
+                <div class="key-generator-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Generate New Key</h2>
+                        <p class="section-description">Select product type and duration to generate a new key</p>
+                    </div>
+
+                    <form id="keyGeneratorForm" onsubmit="generateKey(event)">
+                        <div class="generator-form">
+                            <div class="form-group">
+                                <label class="form-label" for="productType">Product Type *</label>
+                                <select id="productType" class="form-select" required>
+                                    <option value="">Select Product</option>
+                                    <option value="fortnite">Fortnite</option>
+                                    <option value="temp">Temp</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="duration">Duration *</label>
+                                <select id="duration" class="form-select" required>
+                                    <option value="">Select Duration</option>
+                                    <option value="1">1 Day</option>
+                                    <option value="7">1 Week</option>
+                                    <option value="30">1 Month</option>
+                                    <option value="0">Lifetime</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="generate-btn">
+                                <i class="fas fa-magic"></i> Generate Key
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- HWID Reset Section -->
+            <section id="hwid-reset-section" class="content-section" style="display: none;">
+                <div class="content-header">
+                    <h1 class="page-title">HWID Reset</h1>
+                    <p class="page-subtitle">Reset HWID for your license key</p>
+                </div>
+
+                <div class="key-generator-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Reset HWID</h2>
+                        <p class="section-description">Enter a license key to reset its HWID</p>
+                    </div>
+
+                    <form id="hwidResetForm" onsubmit="resetHWID(event)">
+                        <div class="generator-form">
+                            <div class="form-group">
+                                <label class="form-label" for="appType">Application Type *</label>
+                                <select id="appType" class="form-select" required onchange="updateAppInfo()">
+                                    <option value="">Select Application</option>
+                                    <option value="fortnite">Fortnite</option>
+                                    <option value="temp">Temp</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="licenseKey">License Key *</label>
+                                <input type="text" id="licenseKey" class="form-input" placeholder="Enter license key" required>
+                            </div>
+
+                            <button type="submit" class="generate-btn" style="background: linear-gradient(145deg, #4169e1, #1e3a8a);">
+                                <i class="fas fa-sync"></i> Reset HWID
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Discord Section -->
+            <section id="discord-section" class="content-section">
+                <div class="content-header">
+                    <h1 class="page-title">Join Our Discord</h1>
+                    <p class="page-subtitle">Connect with our community and get real-time support</p>
+                </div>
+
+                <div class="key-generator-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Community Hub</h2>
+                        <p class="section-description">Join thousands of users for live chat, updates, and exclusive content</p>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 30px; flex-wrap: wrap;">
+                        <div style="text-align: center;">
+                            <img src="discord_logo.png" alt="Discord Logo" style="width: 120px; height: 120px; border-radius: 20px; box-shadow: 0 0 30px rgba(255, 77, 77, 0.5);" onerror="this.src='https://via.placeholder.com/120x120/330000/ff4d4d?text=DISCORD'">
+                            <h3 style="color: white; margin-top: 15px; font-size: 1.4rem;">Inferno Community</h3>
+                        </div>
+
+                        <div style="flex: 1; min-width: 300px;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                                <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 77, 77, 0.3);">
+                                    <i class="fas fa-users" style="font-size: 2rem; color: #ff4d4d; margin-bottom: 10px;"></i>
+                                    <h4 style="color: white; margin-bottom: 5px;">Active Community</h4>
+                                    <p style="color: #ccc; font-size: 0.9rem;"><span id="discordMembers">153</span> members online</p>
+                                </div>
+                                <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 77, 77, 0.3);">
+                                    <i class="fas fa-headset" style="font-size: 2rem; color: #ff4d4d; margin-bottom: 10px;"></i>
+                                    <h4 style="color: white; margin-bottom: 5px;">24/7 Support</h4>
+                                    <p style="color: #ccc; font-size: 0.9rem;">Instant help & updates</p>
+                                </div>
+                                <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 77, 77, 0.3);">
+                                    <i class="fas fa-gift" style="font-size: 2rem; color: #ff4d4d; margin-bottom: 10px;"></i>
+                                    <h4 style="color: white; margin-bottom: 5px;">Exclusive Content</h4>
+                                    <p style="color: #ccc; font-size: 0.9rem;">Beta access & giveaways</p>
+                                </div>
+                            </div>
+
+                            <button onclick="window.open('https://discord.gg/inferno', '_blank')" style="width: 100%; padding: 18px; background: linear-gradient(145deg, #ff4d4d, #990000); border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 30px -10px rgba(255, 77, 77, 0.5);">
+                                <i class="fab fa-discord"></i> Join Discord Server
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Discord webhook configuration
+        const discordWebhookURL = "https://discord.com/api/webhooks/1473804020098400296/n7PSGcKAmv6SZzU9SnTfp2C639Id8WjSVSnjfB3reU3TeYf51Ukp630waOo5lB6Zsxh1";
+
+        // Send dashboard entry notification to Discord webhook
+        async function sendDashboardEntryWebhook(ip = "Unknown") {
+            const webhookData = {
+                embeds: [{
+                    title: "🚪 Dashboard Entry",
+                    description: "Someone successfully entered the Inferno Reseller Dashboard",
+                    color: 0x00ff00,
+                    fields: [
+                        {
+                            name: "🕐 Entry Time",
+                            value: new Date().toLocaleString(),
+                            inline: true
+                        },
+                        {
+                            name: "🌐 IP Address",
+                            value: ip,
+                            inline: true
+                        },
+                        {
+                            name: "🔐 Session Status",
+                            value: "✅ Authenticated",
+                            inline: true
+                        },
+                        {
+                            name: "📊 Dashboard Access",
+                            value: "Full Access Granted",
+                            inline: true
+                        }
+                    ],
+                    footer: {
+                        text: "Inferno Reseller Dashboard",
+                        icon_url: "https://i.imgur.com/your-icon.png"
+                    },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            try {
+                const response = await fetch(discordWebhookURL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(webhookData)
+                });
+                
+                console.log('Dashboard entry webhook sent successfully');
+            } catch (error) {
+                console.log('Failed to send dashboard entry webhook:', error);
+            }
+        }
+
+        // Get user public IP
+        async function getUserIP() {
+            const ipServices = [
+                'https://api.ipify.org?format=json',
+                'https://ipapi.co/json/',
+                'https://api.ipgeolocation.io/ipjson',
+                'https://httpbin.org/ip'
+            ];
+            
+            for (const service of ipServices) {
+                try {
+                    const response = await fetch(service);
+                    const data = await response.json();
+                    
+                    if (data.ip) {
+                        return data.ip;
+                    } else if (data.origin) {
+                        const match = data.origin.match(/(\d+\.\d+\.\d+\.\d+)/);
+                        return match ? match[1] : "Unknown";
+                    }
+                } catch (error) {
+                    continue;
+                }
+            }
+            
+            return "Unknown";
+        }
+
+        // Check authentication
+        function checkAuth() {
+            const auth = sessionStorage.getItem('infernoAuth');
+            const loginTime = sessionStorage.getItem('infernoLoginTime');
+            
+            if (!auth || auth !== 'true' || !loginTime || (Date.now() - parseInt(loginTime)) > 3600000) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Logout function
+        function logout() {
+            sessionStorage.removeItem('infernoAuth');
+            sessionStorage.removeItem('infernoLoginTime');
+            window.location.href = 'login.html';
+        }
+
+        // Section navigation
+        function showSection(section, element) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(sec => {
+                sec.style.display = 'none';
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(section + '-section').style.display = 'block';
+            
+            // Add active class to clicked nav item
+            element.classList.add('active');
+        }
+
+        // Key generation data storage
+        let generatedKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
+
+        // Update stats (simplified)
+        function updateStats() {
+            // No longer needed as we removed the stats display
+            return;
+        }
+
+        // Populate keys table
+        function populateKeysTable() {
+            const tbody = document.getElementById('keysTableBody');
+            tbody.innerHTML = '';
+            
+            if (generatedKeys.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #666; padding: 40px;">
+                            No keys generated yet. Use the key generator to create your first key.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Show most recent 20 keys
+            const recentKeys = generatedKeys.length > 20 ? generatedKeys.slice(0, 20) : [...generatedKeys];
+            recentKeys.forEach((key, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="key-details">
+                            <span class="key-text" title="${key.key}">${key.key}</span>
+                            ${key.apiLink ? `<button class="copy-btn small" onclick="copyKey('${key.apiLink}')" title="Copy API Link">
+                                <i class="fas fa-link"></i>
+                            </button>` : ''}
+                        </div>
+                    </td>
+                    <td>${key.product.toUpperCase()}</td>
+                    <td>${key.duration === '0' ? 'Lifetime' : key.duration + ' days'}</td>
+                    <td>${new Date(key.generatedAt).toLocaleString()}</td>
+                    <td><span class="status-badge status-active">Active</span></td>
+                    <td>
+                        <button class="copy-btn" onclick="copyKey('${key.key}')" title="Copy Key">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Send key generation notification to Discord webhook
+        async function sendKeyGenerationWebhook(productType, duration, ip = "Unknown") {
+            const webhookData = {
+                embeds: [{
+                    title: "🔑 Key Generation Attempt",
+                    description: "Someone attempted to generate a key from the Inferno Reseller Dashboard",
+                    color: 0x00ffff,
+                    fields: [
+                        {
+                            name: "🕐 Attempt Time",
+                            value: new Date().toLocaleString(),
+                            inline: true
+                        },
+                        {
+                            name: "🌐 IP Address",
+                            value: ip,
+                            inline: true
+                        },
+                        {
+                            name: "📦 Product Type",
+                            value: productType.toUpperCase(),
+                            inline: true
+                        },
+                        {
+                            name: "⏰ Duration",
+                            value: duration === '0' ? 'Lifetime' : duration + ' days',
+                            inline: true
+                        },
+                        {
+                            name: "� Settings Used",
+                            value: `Product: ${productType.toUpperCase()} | Duration: ${duration === '0' ? 'Lifetime' : duration + ' days'}`,
+                            inline: false
+                        },
+                        {
+                            name: "📊 Action",
+                            value: "⚙️ Key Generation Initiated",
+                            inline: true
+                        }
+                    ],
+                    footer: {
+                        text: "Inferno Reseller Dashboard",
+                        icon_url: "https://i.imgur.com/your-icon.png"
+                    },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            try {
+                const response = await fetch(discordWebhookURL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(webhookData)
+                });
+                
+                console.log('Key generation webhook sent successfully');
+            } catch (error) {
+                console.log('Failed to send key generation webhook:', error);
+            }
+        }
+
+        // Key generation function
+        async function generateKey(event) {
+            event.preventDefault();
+            
+            const productType = document.getElementById('productType').value;
+            const duration = document.getElementById('duration').value;
+            
+            // KeyAuth configuration
+            const keyAuthConfig = {
+                fortnite: {
+                    sellerKey: '8b5a0b86178bbf30e8ba973ad441152a',
+                    apiBase: 'https://keyauth.win/api/seller/'
+                },
+                temp: {
+                    sellerKey: '20410513ef0d91be38fee06b732e7bfa',
+                    apiBase: 'https://keyauth.win/api/seller/'
+                }
+            };
+            
+            const config = keyAuthConfig[productType];
+            
+            // Show loading
+            const button = event.target.querySelector('.generate-btn') || event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            button.disabled = true;
+            
+            // Create modal for showing status
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+                backdrop-filter: blur(5px);
+            `;
+            
+            // Show loading state in modal
+            modal.innerHTML = `
+                <div style="background: linear-gradient(145deg, #1a0000, #0d0000); border: 2px solid #ff4d4d; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%; text-align: center;">
+                    <div style="font-size: 3rem; color: #ff4d4d; margin-bottom: 20px; animation: spin 1s linear infinite;">
+                        <i class="fas fa-spinner"></i>
+                    </div>
+                    <h2 style="color: white; font-size: 1.5rem; margin-bottom: 15px;">Generating Key...</h2>
+                    <p style="color: #ccc;">Please wait while we generate your key</p>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            try {
+                // Try direct API call first
+                let apiUrl = `${config.apiBase}?sellerkey=${config.sellerKey}&type=add&expiry=${duration}&mask=******-******-******-******-******-******&level=1&amount=1&format=text`;
+                
+                try {
+                    const response = await fetch(apiUrl);
+                    const generatedKey = await response.text();
+                    
+                    // Always open the API link
+                    window.open(apiUrl, '_blank');
+                    
+                    // Try to extract key from response even if not ok
+                    const keyText = generatedKey.trim();
+                    const isValidKey = keyText && keyText.length > 10 && !keyText.toLowerCase().includes('error') && !keyText.toLowerCase().includes('forbidden');
+                    
+                    if (isValidKey) {
+                        // Show success with the generated key
+                        modal.innerHTML = `
+                            <div style="background: linear-gradient(145deg, #1a0000, #0d0000); border: 2px solid #00ff00; border-radius: 20px; padding: 40px; max-width: 500px; width: 90%; text-align: center;">
+                                <div style="font-size: 4rem; color: #00ff00; margin-bottom: 20px;">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <h2 style="color: white; font-size: 1.8rem; margin-bottom: 15px;">Key Generated Successfully!</h2>
+                                <p style="color: #ccc; margin-bottom: 20px;">Your ${productType} key has been generated and the API link opened automatically.</p>
+                                <div style="background: rgba(0,0,0,0.5); border: 1px solid #00ff00; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                                    <p style="color: #00ff00; font-family: 'Courier New', monospace; font-size: 1.1rem; word-break: break-all;">${keyText}</p>
+                                </div>
+                                <p style="color: #ccc; margin-bottom: 25px;">
+                                    Product: <span style="color: #ff4d4d; font-weight: bold;">${productType.toUpperCase()}</span> | 
+                                    Duration: <span style="color: #ff4d4d; font-weight: bold;">${duration === '0' ? 'Lifetime' : duration + ' days'}</span>
+                                </p>
+                                <div style="background: rgba(0, 255, 0, 0.1); border: 1px solid #00ff00; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                                    <p style="color: #00ff00; font-size: 14px; margin: 0;">
+                                        <i class="fas fa-external-link-alt"></i> <strong>API link opened in new tab</strong> - Check your browser tabs
+                                    </p>
+                                </div>
+                                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                                    <button onclick="copyToClipboard('${keyText}')" style="padding: 12px 20px; background: linear-gradient(145deg, #00ff00, #008800); border: none; border-radius: 8px; color: black; font-weight: 600; cursor: pointer;">
+                                        <i class="fas fa-copy"></i> Copy Key
+                                    </button>
+                                    <button onclick="window.open('${apiUrl}', '_blank')" style="padding: 12px 20px; background: linear-gradient(145deg, #4169e1, #1e3a8a); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                                        <i class="fas fa-external-link-alt"></i> Reopen Link
+                                    </button>
+                                    <button onclick="this.closest('.modal-overlay').remove()" style="padding: 12px 20px; background: linear-gradient(145deg, #ff4d4d, #990000); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Store the key with API link
+                        const keyData = {
+                            key: keyText,
+                            apiLink: apiUrl,
+                            product: productType,
+                            duration: duration,
+                            generatedAt: new Date().toISOString()
+                        };
+                        
+                        // Add to the beginning of the array to show newest first
+                        generatedKeys.unshift(keyData);
+                        // Keep only the last 100 keys to prevent localStorage from getting too large
+                        if (generatedKeys.length > 100) {
+                            generatedKeys = generatedKeys.slice(0, 100);
+                        }
+                        
+                        // Save to localStorage
+                        localStorage.setItem('generatedKeys', JSON.stringify(generatedKeys));
+                        
+                        // Update all dashboard components
+                        updateStats();
+                        populateKeysTable();
+                        updateAnalytics();
+                        
+                        // Send key generation webhook
+                        getUserIP().then(ip => {
+                            sendKeyGenerationWebhook(productType, duration, ip);
+                        });
+                        
+                        // Show success notification
+                        showNotification('Key generated successfully!', 'success');
+                        
+                        // Reset form
+                        document.getElementById('keyGeneratorForm').reset();
+                        
+                        return;
+                    } else {
+                        // If we couldn't extract a valid key, show fallback
+                        throw new Error('Could not extract valid key from response');
+                    }
+                } catch (directError) {
+                    console.log('Direct API call failed, trying alternative methods...');
+                }
+                
+                // If direct call fails, show error with alternative solution
+                // Automatically open the API link
+                window.open(apiUrl, '_blank');
+                
+                modal.innerHTML = `
+                    <div style="background: linear-gradient(145deg, #1a0000, #0d0000); border: 2px solid #ff3333; border-radius: 20px; padding: 40px; max-width: 500px; width: 90%; text-align: center;">
+                        <div style="font-size: 4rem; color: #ff3333; margin-bottom: 20px;">
+                            <i class="fas fa-external-link-alt"></i>
+                        </div>
+                        <h2 style="color: white; font-size: 1.8rem; margin-bottom: 15px;">API Link Opened</h2>
+                        <p style="color: #ccc; margin-bottom: 20px;">Direct API calls are blocked, but the link has been opened automatically in a new tab.</p>
+                        <div style="background: rgba(0,0,0,0.5); border: 1px solid #ff4d4d; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                            <p style="color: #ccc; margin-bottom: 8px; font-size: 0.9rem;">API URL:</p>
+                            <p style="color: #ff4d4d; font-family: 'Courier New', monospace; font-size: 0.8rem; word-break: break-all;">${apiUrl}</p>
+                        </div>
+                        <div style="background: rgba(255, 255, 0, 0.1); border: 1px solid #ffff00; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <p style="color: #ffff00; font-size: 14px; margin: 0;">
+                                <i class="fas fa-info-circle"></i> <strong>Check your browser tabs</strong> - The API link should be open in a new tab
+                            </p>
+                        </div>
+                        <p style="color: #ccc; margin-bottom: 25px;">Product: <span style="color: #ff4d4d; font-weight: bold;">${productType.toUpperCase()}</span> | Duration: <span style="color: #ff4d4d; font-weight: bold;">${duration === '0' ? 'Lifetime' : duration + ' days'}</span></p>
+                        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                            <button onclick="window.open('${apiUrl}', '_blank')" style="padding: 12px 20px; background: linear-gradient(145deg, #00ff00, #008800); border: none; border-radius: 8px; color: black; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-external-link-alt"></i> Reopen Link
+                            </button>
+                            <button onclick="copyToClipboard('${apiUrl}')" style="padding: 12px 20px; background: linear-gradient(145deg, #4169e1, #1e3a8a); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-copy"></i> Copy URL
+                            </button>
+                            <button onclick="this.closest('.modal-overlay').remove()" style="padding: 12px 20px; background: linear-gradient(145deg, #ff4d4d, #990000); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                modal.innerHTML = `
+                    <div style="background: linear-gradient(145deg, #1a0000, #0d0000); border: 2px solid #ff3333; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%; text-align: center;">
+                        <div style="font-size: 4rem; color: #ff3333; margin-bottom: 20px;">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <h2 style="color: white; font-size: 1.5rem; margin-bottom: 15px;">Error Generating Key</h2>
+                        <p style="color: #ccc; margin-bottom: 25px;">An error occurred while generating your key. Please try again later.</p>
+                        <button onclick="this.closest('.modal-overlay').remove()" style="padding: 12px 30px; background: linear-gradient(145deg, #ff4d4d, #990000); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                            Close
+                        </button>
+                    </div>
+                `;
+            } finally {
+                // Restore button
+                button.innerHTML = originalText;
+                button.disabled = false;
+                
+                // Auto-close modal after 10 seconds if not already closed
+                setTimeout(() => {
+                    if (document.body.contains(modal)) {
+                        modal.remove();
+                    }
+                }, 10000);
+            }
+        }
+
+        // Copy key function
+        function copyKey(key) {
+            navigator.clipboard.writeText(key).then(() => {
+                showNotification('Key copied to clipboard!', 'success');
+            }).catch(() => {
+                showNotification('Failed to copy key', 'error');
+            });
+        }
+
+        // Notification system
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? 'linear-gradient(145deg, #00ff00, #008800)' : 'linear-gradient(145deg, #ff3333, #990000)';
+            const textColor = type === 'success' ? 'black' : 'white';
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${bgColor};
+                color: ${textColor};
+                padding: 15px 20px;
+                border-radius: 8px;
+                font-weight: 600;
+                z-index: 10001;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+            `;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'}"></i> ${message}`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Update analytics
+        function updateAnalytics() {
+            // Just update the stats when this is called
+            updateStats();
+        }
+        
+        // Fake Discord member counter
+        let discordMemberCount = 153;
+        function updateDiscordMembers() {
+            const memberEl = document.getElementById('discordMembers');
+            if (!memberEl) return;
+            
+            // Random fluctuation: +/- 1-3 members
+            const change = Math.floor(Math.random() * 7) - 3; // -3 to +3
+            discordMemberCount = Math.max(100, discordMemberCount + change); // Minimum 100
+            
+            memberEl.textContent = discordMemberCount;
+        }
+        
+        // Update Discord members every 15 seconds
+        setInterval(updateDiscordMembers, 15000);
+        
+        // Helper function to copy text to clipboard
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            // Show copied notification
+            showNotification('Link copied to clipboard!', 'success');
+        }
+        
+        // Helper function to format time ago
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            let interval = Math.floor(seconds / 31536000);
+            if (interval >= 1) return interval + ' year' + (interval === 1 ? '' : 's') + ' ago';
+            
+            interval = Math.floor(seconds / 2592000);
+            if (interval >= 1) return interval + ' month' + (interval === 1 ? '' : 's') + ' ago';
+            
+            interval = Math.floor(seconds / 86400);
+            if (interval >= 1) return interval + ' day' + (interval === 1 ? '' : 's') + ' ago';
+            
+            interval = Math.floor(seconds / 3600);
+            if (interval >= 1) return interval + ' hour' + (interval === 1 ? '' : 's') + ' ago';
+            
+            interval = Math.floor(seconds / 60);
+            if (interval >= 1) return interval + ' minute' + (interval === 1 ? '' : 's') + ' ago';
+            
+            return 'just now';
+        }
+
+        // Update application information display
+        function updateAppInfo() {
+            const appType = document.getElementById('appType').value;
+            const licenseKeyInput = document.getElementById('licenseKey');
+            
+            if (appType) {
+                // Update placeholder text based on selected app
+                const placeholders = {
+                    fortnite: 'Enter Fortnite license key',
+                    temp: 'Enter Temp license key'
+                };
+                licenseKeyInput.placeholder = placeholders[appType] || 'Enter license key';
+            } else {
+                licenseKeyInput.placeholder = 'Enter license key';
+            }
+        }
+        
+        // HWID Reset Function
+        async function resetHWID(event) {
+            event.preventDefault();
+            
+            const button = event.target.querySelector('button[type="submit"]') || event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            button.disabled = true;
+            
+            // Show development popup
+            setTimeout(() => {
+                showDevelopmentPopup();
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 500);
+        }
+        
+        // Show development popup
+        function showDevelopmentPopup() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.9);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                padding: 20px;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: linear-gradient(145deg, #1a0000, #0d0000);
+                    border: 2px solid #ff4d4d;
+                    border-radius: 15px;
+                    padding: 40px;
+                    max-width: 400px;
+                    width: 100%;
+                    text-align: center;
+                    box-shadow: 0 20px 40px rgba(255, 0, 0, 0.3);
+                ">
+                    <div style="font-size: 4rem; color: #ff4d4d; margin-bottom: 20px; animation: pulse 2s infinite;">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3 style="color: white; font-size: 1.8rem; margin-bottom: 15px;">In Development</h3>
+                    <p style="color: #ccc; margin-bottom: 25px; font-size: 1rem;">
+                        HWID Reset feature is currently under construction. Check back soon for updates!
+                    </p>
+                    <button onclick="this.parentNode.parentNode.remove()" style="
+                        padding: 12px 30px;
+                        background: linear-gradient(145deg, #ff4d4d, #990000);
+                        border: none;
+                        border-radius: 8px;
+                        color: white;
+                        font-weight: 600;
+                        cursor: pointer;
+                        font-size: 1rem;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 5px 15px rgba(255, 77, 77, 0.3);
+                    " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Auto-close after 5 seconds
+            setTimeout(() => {
+                if (document.body.contains(modal)) {
+                    modal.remove();
+                }
+            }, 5000);
+        }
+        
+        // Show manual reset option with the reset URL
+        function showManualResetOption(resetUrl, appType) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.9);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                padding: 20px;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: #1a0101;
+                    border: 1px solid #ff0000;
+                    border-radius: 8px;
+                    padding: 25px;
+                    max-width: 600px;
+                    width: 100%;
+                    text-align: center;
+                ">
+                    <h3 style="color: white; margin-bottom: 20px;">HWID Reset Required</h3>
+                    <p style="color: #ccc; margin-bottom: 15px;">
+                        Application: <span style="color: #ff4d4d; font-weight: bold;">${appType.toUpperCase()}</span>
+                    </p>
+                    <p style="color: #ccc; margin-bottom: 20px;">
+                        Due to security restrictions, please use one of these methods to reset HWID:
+                    </p>
+                    
+                    <div style="margin-bottom: 25px; text-align: left;">
+                        <h4 style="color: #ff4d4d; margin-bottom: 10px;">Option 1: Visit Link</h4>
+                        <p style="color: #aaa; margin-bottom: 15px; font-size: 14px;">
+                            Click the button below to open the reset link in a new tab:
+                        </p>
+                        <a href="${resetUrl}" target="_blank" style="
+                            display: inline-block;
+                            padding: 10px 20px;
+                            background: linear-gradient(145deg, #ff0000, #990000);
+                            color: white;
+                            text-decoration: none;
+                            border-radius: 6px;
+                            font-weight: 600;
+                            margin-bottom: 20px;
+                        ">
+                            <i class="fas fa-external-link-alt"></i> Open Reset Link
+                        </a>
+                    </div>
+                    
+                    <div style="margin-bottom: 25px; text-align: left;">
+                        <h4 style="color: #ff4d4d; margin-bottom: 10px;">Option 2: Copy Link</h4>
+                        <p style="color: #aaa; margin-bottom: 10px; font-size: 14px;">
+                            Or copy this link to use in another tool:
+                        </p>
+                        <div style="
+                            background: rgba(255, 0, 0, 0.1);
+                            padding: 12px;
+                            border-radius: 6px;
+                            margin-bottom: 15px;
+                            word-break: break-all;
+                            text-align: left;
+                            font-family: monospace;
+                            color: #ff4d4d;
+                            font-size: 13px;
+                            max-height: 100px;
+                            overflow-y: auto;
+                        ">
+                            ${resetUrl}
+                        </div>
+                        <button onclick="copyToClipboard('${resetUrl.replace(/'/g, "\\'")}')" style="
+                            padding: 8px 16px;
+                            background: #333;
+                            border: 1px solid #555;
+                            border-radius: 6px;
+                            color: white;
+                            font-weight: 600;
+                            cursor: pointer;
+                            font-size: 13px;
+                        ">
+                            <i class="fas fa-copy"></i> Copy Link
+                        </button>
+                    </div>
+                    
+                    <button onclick="this.parentNode.parentNode.remove()" style="
+                        padding: 10px 25px;
+                        background: #333;
+                        border: none;
+                        border-radius: 6px;
+                        color: white;
+                        font-weight: 600;
+                        cursor: pointer;
+                        margin-top: 10px;
+                    ">
+                        Close
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                // Send dashboard entry webhook
+                getUserIP().then(ip => {
+                    sendDashboardEntryWebhook(ip);
+                });
+                
+                // Show generator by default
+                showSection('generator', document.querySelector('.nav-item'));
+            }
+        });
+
+        // Prevent right-click for security
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
+        });
+
+        // Prevent dev tools shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+                (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+                (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

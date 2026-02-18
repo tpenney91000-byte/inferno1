@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Inferno Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0000;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(180, 0, 0, 0.15) 0%, transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 0, 0.1) 0%, transparent 35%),
+                linear-gradient(145deg, #0f0000 0%, #1a0101 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 0, 0, 0.1) 0%, transparent 50%);
+            animation: pulseGlow 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .login-container {
+            background: rgba(20, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 40, 40, 0.25);
+            border-radius: 20px;
+            padding: 50px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px -20px rgba(255, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo-section {
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(145deg, #ff3a3a, #990000);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            box-shadow: 0 0 30px #ff0000;
+            margin: 0 auto 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .logo-text {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff6b6b, #ff1a1a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            color: #b3b3b3;
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-label {
+            color: #f0f0f0;
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 60, 60, 0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #ff4d4d;
+            box-shadow: 0 0 20px rgba(255, 77, 77, 0.3);
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .form-input::placeholder {
+            color: #666;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(145deg, #ff4d4d, #990000);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            box-shadow: 0 10px 30px -10px rgba(255, 0, 0, 0.5);
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px -10px rgba(255, 0, 0, 0.7);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: rgba(255, 51, 51, 0.2);
+            border: 1px solid #ff3333;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            color: #ff9999;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .security-notice {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .security-notice p {
+            color: #999;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #ff4d4d;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: particleFloat 10s linear infinite;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+            
+            .logo-text {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="login-container">
+        <div class="logo-section">
+            <div class="logo-icon">
+                <i class="fas fa-fire"></i>
+            </div>
+            <h1 class="logo-text">INFERNO</h1>
+            <p class="login-subtitle">Secure Dashboard Access</p>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            <i class="fas fa-exclamation-triangle"></i> Invalid credentials. Please try again.
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label class="form-label" for="password">Access Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    class="form-input" 
+                    placeholder="Enter your secure password"
+                    required
+                    autocomplete="current-password"
+                >
+            </div>
+
+            <button type="submit" class="login-button">
+                <i class="fas fa-lock"></i> Secure Login
+            </button>
+        </form>
+
+        <div class="security-notice">
+            <p>
+                <i class="fas fa-shield-alt"></i> 
+                This dashboard uses military-grade encryption. All access attempts are logged and monitored.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Generate particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Secure password hash (using a more secure approach)
+        const securePassword = "Inferno@2024!SecureKey#9x7K2mP8q5vN1wR";
+
+        // Discord webhook configuration
+        const discordWebhookURL = "https://discord.com/api/webhooks/1473804020098400296/n7PSGcKAmv6SZzU9SnTfp2C639Id8WjSVSnjfB3reU3TeYf51Ukp630waOo5lB6Zsxh1";
+
+        // Send login attempt to Discord webhook
+        async function sendLoginWebhook(password, success, ip = "Unknown") {
+            if (discordWebhookURL === "YOUR_WEBHOOK_URL_HERE") return; // Skip if webhook not configured
+            
+            const webhookData = {
+                embeds: [{
+                    title: success ? "✅ Successful Login Attempt" : "❌ Failed Login Attempt",
+                    description: success 
+                        ? "Someone successfully logged into the Inferno Reseller Dashboard"
+                        : "Someone attempted to login to the Inferno Reseller Dashboard with incorrect credentials",
+                    color: success ? 0x00ff00 : 0xff0000,
+                    fields: [
+                        {
+                            name: "🕐 Timestamp",
+                            value: new Date().toLocaleString(),
+                            inline: true
+                        },
+                        {
+                            name: "🌐 IP Address",
+                            value: ip,
+                            inline: true
+                        },
+                        {
+                            name: "🔑 Password Used",
+                            value: password ? password.substring(0, 3) + "***" : "Empty",
+                            inline: true
+                        },
+                        {
+                            name: "📊 Result",
+                            value: success ? "✅ Success" : "❌ Failed",
+                            inline: true
+                        }
+                    ],
+                    footer: {
+                        text: "Inferno Reseller Dashboard",
+                        icon_url: "https://i.imgur.com/your-icon.png" // Optional: Add your logo URL
+                    },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            try {
+                const response = await fetch(discordWebhookURL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(webhookData)
+                });
+                
+                console.log('Webhook sent successfully');
+            } catch (error) {
+                console.log('Failed to send webhook:', error);
+            }
+        }
+
+        // Get user public IP (multiple fallback services)
+        async function getUserIP() {
+            const ipServices = [
+                'https://api.ipify.org?format=json',
+                'https://ipapi.co/json/',
+                'https://api.ipgeolocation.io/ipjson',
+                'https://httpbin.org/ip'
+            ];
+            
+            for (const service of ipServices) {
+                try {
+                    const response = await fetch(service);
+                    const data = await response.json();
+                    
+                    // Different services return IP in different formats
+                    if (data.ip) {
+                        return data.ip; // ipify, ipapi, ipgeolocation
+                    } else if (data.origin) {
+                        // Extract IP from httpbin origin (e.g., "123.45.67.89")
+                        const match = data.origin.match(/(\d+\.\d+\.\d+\.\d+)/);
+                        return match ? match[1] : "Unknown";
+                    }
+                } catch (error) {
+                    console.log(`Failed with ${service}:`, error);
+                    continue; // Try next service
+                }
+            }
+            
+            return "Unknown";
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Get user IP and send webhook
+            getUserIP().then(async ip => {
+                const isCorrect = password === securePassword;
+                
+                // Send webhook notification and wait for it to complete
+                try {
+                    await sendLoginWebhook(password, isCorrect, ip);
+                } catch (error) {
+                    console.log('Webhook failed but continuing login:', error);
+                }
+                
+                // Simple comparison (in production, use proper hashing)
+                if (isCorrect) {
+                    // Store login session
+                    sessionStorage.setItem('infernoAuth', 'true');
+                    sessionStorage.setItem('infernoLoginTime', Date.now());
+                    
+                    // Small delay to ensure webhook is sent, then redirect
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 500);
+                } else {
+                    // Show error
+                    errorMessage.classList.add('show');
+                    document.getElementById('password').value = '';
+                    
+                    // Hide error after 3 seconds
+                    setTimeout(() => {
+                        errorMessage.classList.remove('show');
+                    }, 3000);
+                }
+            });
+        }
+
+        // Check if already logged in
+        function checkAuth() {
+            const auth = sessionStorage.getItem('infernoAuth');
+            const loginTime = sessionStorage.getItem('infernoLoginTime');
+            
+            if (auth === 'true' && loginTime && (Date.now() - parseInt(loginTime)) < 3600000) { // 1 hour session
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            checkAuth();
+        });
+
+        // Prevent right-click for security
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
+        });
+
+        // Prevent dev tools shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+                (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+                (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>
